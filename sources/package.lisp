@@ -4,5 +4,3 @@
 
 (require-library "GIL")
 
-(defpackage :bitsch
-(:use "COMMON-LISP" "OM" "CL-USER"))
