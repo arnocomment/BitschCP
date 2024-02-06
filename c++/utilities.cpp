@@ -1,6 +1,8 @@
 #include "headers/utilities.hpp"
 
-
+/**
+ * Map containing all the modes, marked by intervals
+*/
 map<int, const vector<int>> scales = {
     {IONIAN, {MAJOR_SECOND, MAJOR_SECOND, MINOR_SECOND, MAJOR_SECOND, MAJOR_SECOND, MAJOR_SECOND, MINOR_SECOND}},         // DO  - C
     {DORIAN, {MAJOR_SECOND, MINOR_SECOND, MAJOR_SECOND, MAJOR_SECOND, MAJOR_SECOND, MINOR_SECOND, MAJOR_SECOND}},         // RE  - D
@@ -62,4 +64,16 @@ vector<int> convert_cf(string& cantus_firmus) {
         }
     }
     return cf;
+}
+
+/**
+ * Utility function to print a vector of integers
+ * @return (void)
+*/
+void print_vector(vector<int> vector) {
+    std::cout << "[ ";
+    for (auto i:vector) {
+        std::cout << i << ' ';
+    }
+    std::cout << ']' <<  endl;
 }

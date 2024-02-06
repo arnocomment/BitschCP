@@ -8,12 +8,16 @@
 #include <string>
 #include <ctime>
 #include <exception>
+#include <list>
+#include <numeric>
 
 #include "gecode/kernel.hh"
 #include "gecode/int.hh"
 #include "gecode/search.hh"
 #include "gecode/minimodel.hh"
 #include "gecode/set.hh"
+
+#include "utilities.hpp"
 
 using namespace Gecode;
 using namespace Gecode::Search;
@@ -36,6 +40,8 @@ protected:
     int size; // The size of the variable array of interest
     int lower_bound_domain;
     int upper_bound_domain;
+    int nMeasures;
+    list<int> cf;
     /* @todo Add here any additional attributes you need to represent your problem */
 
 public:
@@ -57,6 +63,15 @@ public:
      * @return an integer representing the size of the vars array
      */
     int getSize();
+
+    /**
+     * Returns the cantus firmus
+     * @return a list representing the midi values of the cantus firmus
+    */
+    list<int> getCf();
+
+    // TODO : write description
+    void rythmic_constraints(int species, Matrix<IntVarArray> cp);
 
     /**
      * Returns the values taken by the variables vars in a solution

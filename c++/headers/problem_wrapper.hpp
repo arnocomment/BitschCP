@@ -14,12 +14,9 @@ extern "C" {
  * @param lower_bound_domain an integer representing the lower bound of the domain of the variables
  * @param upper_bound_domain an integer representing the upper bound of the domain of the variables
  * @return A pointer to a Problem object casted as a void*
+ * TODO change description
  */
 void* create_new_problem(string cantus_firmus, int species);
-
-
-
-
 
 
 /**

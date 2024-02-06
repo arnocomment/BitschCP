@@ -1,5 +1,5 @@
 #include "headers/gecode_problem.hpp"
-#include "headers/problem_wrapper.hpp"
+#include "headers/utilities.hpp"
 
 
 /***********************************************************************************************************************
@@ -16,14 +16,54 @@
  */
 Problem::Problem(vector<int> cantus_firmus, int species) {
     string message = "WSpace object created. ";
+    /*************************************************************************************************************
+    *                                               INITIALISATION                                               *
+    **************************************************************************************************************/
+
+    std::copy(cantus_firmus.begin(), cantus_firmus.end(), std::back_inserter(cf));      // Init cantus firmus 
+    nMeasures = cantus_firmus.size();
+    size = nMeasures * 4;     // Cf plays whole notes, cp in 4/4 so size is one potential variable per beat
+
+    // BUILD SET OF VALUES FOR THE NOTES IN CP
+    vector<int> scale = scales[IONIAN];                                 // Get the intervals to create the scale (TMP with ionian)
+    vector<int> domain_vector = get_all_notes_from_scale(C, scale);     // Get the domain from the scale (TMP with root C)
+    domain_vector.erase(remove_if (domain_vector.begin(), domain_vector.end(), [](int value) {
+        return ((value < 36) || (value > 81) );                         // Get all notes between C2 and A5 (tmp)
+    }), domain_vector.end());
+    if (species != 3) {
+        domain_vector.insert(domain_vector.begin(), 0);                 // 0 = no note played on this beat, not pertinent for species 3
+        // TODO : implement florid counterpoint
+    }
+    
+    std::cout << "This is the domain : ";
+    print_vector(domain_vector);
+    std :: cout << endl;
+
+    /*************************************************************************************************************
+    *                                             INIT VARIABLES                                                 *
+    **************************************************************************************************************/
+    IntSet domain(domain_vector.data(), domain_vector.size());
+    vars = IntVarArray(*this, size, domain);     
+    Matrix<IntVarArray> cp = Matrix<IntVarArray>(vars, nMeasures, 4);          
+
+    /*************************************************************************************************************
+    *                                               CONSTRAINTS                                                  *
+    **************************************************************************************************************/
+    // RHYTMIC CONSTRAINTS -> add 0 (no note played) in function of the species
+    // TODO : florid counterpoint
+    
+    rythmic_constraints(species, cp);
+
+
+    
     
 
 
-    // variable initialization
-    vars = IntVarArray(*this, size, 0, 150);
+    
 
-    //constraints
-    distinct(*this, vars);
+    /*************************************************************************************************************
+    *                                                BRANCHING                                                   *
+    **************************************************************************************************************/
 
     //branching
     branch(*this, vars, INT_VAR_SIZE_MIN(), INT_VAL_MIN());
@@ -40,6 +80,8 @@ Problem::Problem(Problem& s): Space(s){
     size = s.size;
     lower_bound_domain = s.lower_bound_domain;
     upper_bound_domain = s.upper_bound_domain;
+    nMeasures = s.nMeasures;
+    cf = s.cf;
     vars.update(*this, s.vars);
 }
 
@@ -51,6 +93,38 @@ int Problem::getSize(){
     string message = "getSize function called. size = " + to_string(size) + "\n";
     writeToLogFile(message.c_str());
     return size;
+}
+
+/**
+ * Returns the cantus firmus
+ * @return a list representing the midi values of the cantus firmus
+  */
+list<int> Problem::getCf() {
+    return cf;
+}
+
+/**
+ * 
+*/
+void Problem::rythmic_constraints(int species, Matrix<IntVarArray> cp) {
+    for (int beat = 0; beat < 4 && species !=3; ++beat) {           // if third species : all notes must be played
+        for (int measure = 0; measure < nMeasures; ++measure) {
+            std::cout << "Beat : " << beat << " / Measure : " << measure << endl;
+            if (beat == 0 && species != 4) {                                // first beat of the measure
+                rel(*this, cp(measure, beat), IRT_NQ, 0);   // a note must be played
+            }
+            else if ((beat == 1 || beat == 3) && species == 4) {
+                    rel(*this, cp(measure, beat), IRT_NQ, 0);   // a note must be played
+            }
+            else if (beat == 2 && species == 2) {
+                rel(*this, cp(measure, beat), IRT_NQ, 0);   // a note must be played
+            }
+            else {                                          // 2-3-4 beat of the measure
+                rel(*this, cp(measure, beat), IRT_EQ, 0);   // no note must be played -> 0
+            }
+        }
+    }    
+
 }
 
 /**

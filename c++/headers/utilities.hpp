@@ -111,5 +111,11 @@ vector<int> get_all_notes_from_scale(int root, vector<int> scale);
 /*TODO write descrptions*/
 vector<int> convert_cf(string& cantus_firmus);
 
+/**
+ * Utility function to print a vector of integers
+ * @return (void)
+*/
+void print_vector(vector<int> vector);
+
 
 #endif
